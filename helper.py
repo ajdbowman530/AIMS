@@ -53,14 +53,14 @@ class Helper:
         u_mps = u * 0.514444
         atm = Atmosphere(alt_m)
         
-        if T==None:
-            T = atm.temperature  # Temperature in Kelvin
+        if T is None:
+            T = atm.temperature.item()
         
         a = np.sqrt(gamma * R * T)
         M = float(u_mps / a)
 
-        rho = atm.density  # Air density [kg/m^3]
-        q = float(0.5 * rho * u_mps**2)  # Dynamic pressure [Pa] 
+        rho = atm.density.item()
+        q = float(0.5 * rho * u_mps**2)
 
         return q, M
 
