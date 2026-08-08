@@ -1,0 +1,59 @@
+{
+    "name": "multimodalTest",
+    "IC": {
+        "alt": 20000.0,
+        "vel": 400.0,
+        "w": 5000.0
+    },
+    "n_lon_states": 3,
+    "n_lat_states": 5,
+    "sim_dt": 0.004,
+    "aero_dt": 0.01,
+    "throttle_dt": 0.1,
+    "tf": 30.0,
+    "commands": [
+        {
+            "type": "StepCommand",
+            "target_state": "V",
+            "t_start": 0,
+            "t_end": 10,
+            "magnitude": 400.0
+        },
+        {
+            "type": "StepCommand",
+            "target_state": "q",
+            "t_start": 2.5,
+            "t_end": 7.5,
+            "magnitude": 0.08726646259971647
+        },
+        {
+            "type": "StepCommand",
+            "target_state": "q",
+            "t_start": 7.5,
+            "t_end": 12.5,
+            "magnitude": -0.08726646259971647
+        },
+        {
+            "type": "StepCommand",
+            "target_state": "p",
+            "t_start": 17.5,
+            "t_end": 22.5,
+            "magnitude": 0.08726646259971647
+        },
+        {
+            "type": "StepCommand",
+            "target_state": "p",
+            "t_start": 22.5,
+            "t_end": 27.5,
+            "magnitude": -0.08726646259971647
+        },
+        {
+            "type": "StepCommand",
+            "target_state": "V",
+            "t_start": 0.0,
+            "t_end": 30.0,
+            "magnitude": 400.0
+        }
+    ],
+    "config commands": []
+}
