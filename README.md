@@ -15,17 +15,17 @@ After the .pyd finishes compiling, copy the file into the AIMS folder.
 
 # Tutorial
 AIMS is run using main.py. AIMS opens into the main menu.
-
-> =======AIMS=======
-> No aircraft model read
-> [1]  Read gains from JSON
-> [2]  Launch controller tuning manager
-> [3]  Flight Planner
-> [4]  Launch FDM Environment
-> [5]  Launch Output Visualization
-> [Q]  Quit
-> Make a selection:
-
+```bash
+=======AIMS=======
+No aircraft model read
+[1]  Read gains from JSON
+[2]  Launch controller tuning manage
+[3]  Flight Planner
+[4]  Launch FDM Environment
+[5]  Launch Output Visualization
+[Q]  Quit
+Make a selection:
+```
 Entering "1" will prompt you to choose a aircraft .json file to read in. Aircraft files must be in "AIMS/gain schedules" in order to be detected and read. When new aircraft are created using the tuning manager they will be automatically saved to this folder. After an aircraft file is read, it can be modified in the controller tuning manager or used in the FDM environment. 
 
 "2" will launch the tuning manager. The tunning manager allows you to create a new aircraft gain schedule or to modify and existing aircraft's controller. Use of the tuning manager will be discussed in greater detail.
