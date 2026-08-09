@@ -11,7 +11,7 @@ import subprocess
 
 def main():    
     print("=== AIMS: Aircraft Integrated Management Sandbox ===")
-    print('Block 0, June 2026\n')
+    print('Block 0, August 2026\n')
     # choice = input("Launch (G)UI or (H)eadless? [G/h]: ").lower() or 'g'    
 
     choice = 'h' # force launch headless since there is no GUI
