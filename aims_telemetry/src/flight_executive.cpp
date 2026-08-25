@@ -6,6 +6,8 @@
 #include "../include/autothrottle.h"
 #include "../include/scheduler.h"
 #include "../include/flight_executive.h"
+#include "../include/dynamic_limiter.h"
+#include "../include/outer_loop_controller.h"
 
 FlightExecutive::FlightExecutive(const ExecutiveConfig& config)
 	: aero_dt_(config.aero_dt),
@@ -19,7 +21,7 @@ FlightExecutive::FlightExecutive(const ExecutiveConfig& config)
 	}
 }
 
-Eigen::VectorXd FlightExecutive::run_control_cycle(
+Eigen::VectorXd FlightExecutive::run_inner_control_cycle(
 	const double sim_time, 
 	const GainScheduler::LookupCondition current_cond, 
 	const Eigen::VectorXd x,
@@ -145,6 +147,62 @@ Eigen::VectorXd FlightExecutive::run_control_cycle(
 	return last_control_;
 }
 
+Eigen::VectorXd FlightExecutive::run_outer_control_cycle(
+	const double sim_time,
+	const GainScheduler::LookupCondition current_cond,
+	const Eigen::VectorXd x,
+	const double theta,				// Current Pitch Angle (rad)
+	const double theta_cmd,			// Target Pitch Angle (rad)
+	const double phi,				// Current Bank Angle (rad)
+	const double phi_cmd,			// Target Bank Angle (rad)
+	const double N_z_cmd,			// Target Load Factor (g's)
+	const double max_accel,
+	const bool reheat,
+	const bool output_filter,
+	const double output_alpha) {
+
+	if (!is_initalized_) {
+		K_ = scheduler_.get_gains(current_cond);
+		const size_t n_int_lat = lat_controller_.get_n_int();
+		const size_t n_int_lon = lon_controller_.get_n_int();
+		n_state_lat_ = K_.K_lat.cols() - n_int_lat;
+		n_state_lon_ = K_.K_lon.cols() - n_int_lon;
+	}
+
+	const double V_kts = x[0];
+	const double q_Pa = current_cond[1];
+
+	const double alpha_rad = x[1];
+
+	phi_q_dynamic_limiter_.update_limits(V_kts, alpha_rad, N_z_cmd);
+	theta_p_dynamic_limiter_.update_limits(q_Pa);
+
+	theta_controller_.set_limits(phi_q_dynamic_limiter_.q_min, phi_q_dynamic_limiter_.q_max);
+	phi_controller_.set_limits(theta_p_dynamic_limiter_.p_min, theta_p_dynamic_limiter_.p_max);
+
+	// Compensate for turning
+	constexpr double g = 32.174;
+	double V_fps = V_kts * 1.68781;
+	double q_turn = (V_fps > 50.0) ? (g / V_fps) * ((1.0 - std::cos(phi)) / std::cos(phi)) : 0.0;
+
+	double q_cmd = theta_controller_.update(theta_cmd, theta, aero_dt_) + q_turn;
+	double p_cmd = phi_controller_.update(phi_cmd, phi, aero_dt_);
+
+	// x = [V, alpha, q, [lon act.], beta, p, r, [lat act.]]
+	Eigen::VectorXd x_cmd = x;
+	x_cmd[2] = q_cmd;
+	x_cmd[1 + n_state_lon_ + 1] = p_cmd;
+
+	return run_inner_control_cycle(
+		sim_time, current_cond, x, x_cmd, max_accel, reheat, output_filter, output_alpha
+	);
+}
+
+void FlightExecutive::set_outer_loop_gains(double pitch_kp, double pitch_ki, double roll_kp, double roll_ki) {
+	theta_controller_.set_gains(pitch_kp, pitch_ki);
+	phi_controller_.set_gains(roll_kp, roll_ki);
+}
+
 void FlightExecutive::set_thresholds(const double M_threshold, const double q_threshold, const double W_threshold) {
 	M_threshold_ = M_threshold;
 	q_threshold_ = q_threshold;
@@ -162,5 +220,8 @@ Eigen::VectorXd FlightExecutive::filter_control(const double alpha, const Eigen:
 void FlightExecutive::reset() {
 	lat_controller_.reset_integrators();
 	lon_controller_.reset_integrators();
+	theta_controller_.reset();
+	phi_controller_.reset();
 	autothrottle_.reset();
+	is_initalized_ = false;
 }

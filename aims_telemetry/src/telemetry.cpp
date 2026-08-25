@@ -43,7 +43,8 @@ PYBIND11_MODULE(flight_control, m) {
 
     py::class_<FlightExecutive>(m, "FlightExecutive")
         .def(py::init<const ExecutiveConfig&>(), py::arg("config"))
-        .def("run_control_cycle", &FlightExecutive::run_control_cycle,
+
+        .def("run_innter_control_cycle", &FlightExecutive::run_inner_control_cycle,
             py::arg("sim_time"),
             py::arg("current_cond"),
             py::arg("x"),
@@ -53,6 +54,26 @@ PYBIND11_MODULE(flight_control, m) {
             py::arg("output_filter"),
             py::arg("output_alpha"),
             "Executes the dual-rate control loops and updates surface allocations")
+
+        .def("run_outer_control_cycle", &FlightExecutive::run_outer_control_cycle,
+            py::arg("sim_time"),
+            py::arg("current_cond"),
+            py::arg("x"),
+            py::arg("theta"),
+            py::arg("theta_cmd"),
+            py::arg("phi"),
+            py::arg("phi_cmd"),
+            py::arg("N_z_cmd"),
+            py::arg("max_accel"),
+            py::arg("reheat"),
+            py::arg("output_filter"),
+            py::arg("output_alpha"),
+            "Executes the outer control loop")
+
+        .def("set_outer_loop_gains", &FlightExecutive::set_outer_loop_gains,
+            py::arg("pitch_kp"), py::arg("pitch_ki"),
+            py::arg("roll_kp"), py::arg("roll_ki"),
+            "Set proportional and integral gains for outer loop pitch and roll PI controllers.")
 
         .def("get_scheduler", &FlightExecutive::get_scheduler, py::return_value_policy::reference)
         .def("set_thresholds", &FlightExecutive::set_thresholds,

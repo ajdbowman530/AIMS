@@ -40,6 +40,8 @@ pybind11_add_module(flight_control
     "${CMAKE_CURRENT_SOURCE_DIR}/aero_controller.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/autothrottle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/flight_executive.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/outer_loop_controller.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/dynamic_limiter.cpp"
 )
 
 target_include_directories(flight_control PRIVATE 
