@@ -3,6 +3,8 @@
 #include "scheduler.h"
 #include "aero_controller.h"
 #include "autothrottle.h"
+#include "outer_loop_controller.h"
+#include "dynamic_limiter.h"
 
 struct ExecutiveConfig {
 	double aero_dt;
@@ -18,7 +20,8 @@ public:
     // Pass the config struct and a reference to an already-loaded data deck
     FlightExecutive(const ExecutiveConfig& config);
 
-    Eigen::VectorXd run_control_cycle(const double sim_time,
+    Eigen::VectorXd run_inner_control_cycle(
+        const double sim_time,
         const GainScheduler::LookupCondition current_cond,
         const Eigen::VectorXd x,
         const Eigen::VectorXd x_cmd,
@@ -26,6 +29,22 @@ public:
         const bool reheat,
         const bool output_filter = true,
         const double output_alpha = 1.0);
+
+    Eigen::VectorXd run_outer_control_cycle(
+        const double sim_time,
+        const GainScheduler::LookupCondition current_cond,
+        const Eigen::VectorXd x,
+        const double theta,				// Current Pitch Angle (rad)
+        const double theta_cmd,			// Target Pitch Angle (rad)
+        const double phi,				// Current Bank Angle (rad)
+        const double phi_cmd,			// Target Bank Angle (rad)
+        const double N_z_cmd,			// Target Load Factor (g's)
+        const double max_accel,
+        const bool reheat,
+        const bool output_filter = true,
+        const double output_alpha = 1.0);
+
+    void set_outer_loop_gains(double pitch_kp, double pitch_ki, double roll_kp, double roll_ki);
 
     // Provide a clean public gateway so telemetry.cpp can pass the massive JSON data tables
     GainScheduler& get_scheduler() { return scheduler_; }
@@ -66,4 +85,10 @@ private:
     AeroController lat_controller_;
     AeroController lon_controller_;
     Autothrottle autothrottle_;
+
+    // Outer loop controllers/limiters
+    OuterLoopPI theta_controller_;
+    OuterLoopPI phi_controller_;
+    PhiQDynamicLimiter phi_q_dynamic_limiter_;
+	ThetaPDynamicLimiter theta_p_dynamic_limiter_;
 };
