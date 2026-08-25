@@ -8,6 +8,7 @@ To run AIMS the C++ code must be compiled into a .pyd (Windows) or .so (MacOS/Li
 
 To compile on Windows, open Anaconda Prompt with the desired Conda environment activated, cd into "/aims_telemetry/src" and enter:
 ```bash
+cmake -B build_fresh -S .
 cmake --build .\build_fresh --config Release
 ```
 After the .pyd finishes compiling, copy the file into the AIMS folder.
